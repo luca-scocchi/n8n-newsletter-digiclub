@@ -6,7 +6,7 @@ and summarizing recent articles from multiple WordPress websites using AI.
 The project is designed to produce a ready-to-send newsletter while keeping
 content fresh, consistent, and aligned with an editorial template.
 
-![HR Expert n8n Workflow](project Newsletter)
+![n8n-newsletter-digiclub ](project Newsletter.png)
 
 ---
 
