@@ -1,0 +1,2199 @@
+{
+  "name": "Project Newsletter - DGC",
+  "nodes": [
+    {
+      "parameters": {
+        "jsCode": "const text = $('List of briefes').first().json.text;\nconst righe = text.split('\\n').map(r => r.trim());\n\n// Struttura dati iniziale\nconst data = {\n  PromptChatGPT: \"\",\n  IB: { Titolo: \"\", Testo: \"\", Br: \"\" },\n  DW: { Titolo: \"\", Testo: \"\", Br: \"\" },\n  EP: { Titolo: \"\", Testo: \"\", Br: \"\" },\n  IMPIANTI: { Titolo: \"\" },\n  SICUREZZA: { Titolo: \"\", Testo: \"\", Br: \"\" },\n  EX: { Titolo: \"\", Testo: \"\", Br: \"\" },\n  CORA: { Titolo: \"\", Testo: \"\", Br: \"\" },\n  TAG: [],\n  TagAggiuntivi: []\n};\n\nlet currentBlock = null;\nlet currentField = null;\nlet parsingTags = false;\nlet parsingExtraTags = false;\n\n// flag per sapere se stiamo raccogliendo il prompt\nlet collectingPrompt = false;\n\nfor (const riga of righe) {\n  if (riga.startsWith(\"Prompt ChatGPT:\")) {\n    collectingPrompt = true;\n    currentBlock = \"Prompt\";\n    data.PromptChatGPT = riga.replace(\"Prompt ChatGPT:\", \"\").trim();\n    parsingTags = false;\n    parsingExtraTags = false;\n  } \n  else if (collectingPrompt) {\n    if (riga === \"\" || /^(IB|DW|EP|IMPIANTI|SICUREZZA|EX|CORA):$/.test(riga)) {\n      // smettiamo di raccogliere quando troviamo riga vuota o un nuovo blocco\n      collectingPrompt = false;\n    } else {\n      data.PromptChatGPT += \" \" + riga;\n    }\n  }\n  else if (/^(IB|DW|EP|IMPIANTI|SICUREZZA|EX|CORA):$/.test(riga)) {\n    currentBlock = riga.replace(\":\", \"\").trim();\n    currentField = null;\n    parsingTags = false;\n    parsingExtraTags = false;\n  } \n  else if (riga.startsWith(\"Titolo:\")) {\n    currentField = \"Titolo\";\n    if (currentBlock && data[currentBlock]) {\n      data[currentBlock].Titolo = riga.replace(\"Titolo:\", \"\").trim();\n    }\n  } \n  else if (riga.startsWith(\"Testo:\")) {\n    currentField = \"Testo\";\n    if (currentBlock && data[currentBlock]) {\n      data[currentBlock].Testo = riga.replace(\"Testo:\", \"\").trim();\n    }\n  } \n  else if (riga.startsWith(\"<br>\")) {\n    // Br resta vuoto, solo segnaposto\n    currentField = \"Br\";\n  }\n  else if (riga.startsWith(\"@TAG:\")) {\n    parsingTags = true;\n    parsingExtraTags = false;\n    currentBlock = null;\n  }\n  else if (riga.startsWith(\"Tag aggiuntivi\")) {\n    parsingTags = false;\n    parsingExtraTags = true;\n    currentBlock = null;\n  }\n  else if (parsingTags && riga.length > 0) {\n    data.TAG.push(riga);\n  }\n  else if (parsingExtraTags && riga.startsWith(\"-\")) {\n    data.TagAggiuntivi.push(riga.replace(\"-\", \"\").trim());\n  }\n  else if (riga.length > 0 && currentBlock && currentField) {\n    if (currentField !== \"Br\") {\n      data[currentBlock][currentField] += (data[currentBlock][currentField] ? \" \" : \"\") + riga;\n    }\n  }\n}\n\n// Restituisce JSON strutturato\nreturn [\n  {\n    json: data\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2464,
+        3104
+      ],
+      "id": "076a25e6-21d7-4c44-94b6-8f9641b6a2ea",
+      "name": "Decompose Sample"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2448,
+        160
+      ],
+      "id": "8a3481bf-54eb-4a2a-b54f-1547bdb44450",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qOFjyh4BILFI3cXV",
+          "name": "Google GeminiAccount silvio.menchise@ibasic.it"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2448,
+        560
+      ],
+      "id": "578ab9a7-43c6-4cda-a7e7-f19fb069def1",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qOFjyh4BILFI3cXV",
+          "name": "Google GeminiAccount silvio.menchise@ibasic.it"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2448,
+        960
+      ],
+      "id": "5d823214-1081-4301-b0f5-71f4aee86105",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qOFjyh4BILFI3cXV",
+          "name": "Google GeminiAccount silvio.menchise@ibasic.it"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2448,
+        1360
+      ],
+      "id": "d852d33e-e046-4dbd-829e-e4950d2f3092",
+      "name": "Google Gemini Chat Model3",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "qOFjyh4BILFI3cXV",
+          "name": "Google GeminiAccount silvio.menchise@ibasic.it"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2448,
+        1760
+      ],
+      "id": "5fe94342-c311-4bbc-a394-0884aa2c29df",
+      "name": "Google Gemini Chat Model4",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "2tsRlyqr7LldioDI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Se la data di pubblicazione {{ $json.date }} è più vecchia di 14 giorni rispetto a {{ $('Today date').item.json.Today }}, restituisci un oggetto con tutti i campi vuoti.\n\nSe invece la data è entro 14 giorni, genera un estratto dell’articolo seguendo queste regole:\n\nTitolo:\n- Massimo 20 caratteri\n- Deve catturare subito l’attenzione\n- Stile naturale, come scritto da un esperto umano\n\nContenuto:\n- Massimo 7 righe\n- In italiano fluente e coinvolgente\n- Riassunto originale dell’articolo (non copiare)\n- Deve incuriosire e spingere a leggere di più\n\nInvito alla lettura:\n- La frase deve essere persuasiva, ma mantenere un tono sobrio e adatto a una comunicazione aziendale.\n- Evita espressioni generiche o ripetitive come “Scopri di più” o “Leggi ora”.\n- Può includere una promessa di valore, un beneficio concreto o una domanda stimolante.\n- Assicurati che la frase sia diversa da quelle già utilizzate in precedenza.\n- Includi sempre questo link: {{ $json.link }}\n\n\nTag:\n- Scegli un solo tag dalla lista:\nAI, App, Cloud, Connettività, Cora, Cybersecurity, Digiclub, Digitalizzazione, Digitalway, Domotica, Ecommerce, Greenenergy, Hacking, Hardware, Hotel, Housekeeping, Marketing, Protezione, Seo, Serp, Sicurezza, Socialmedia, Software, Wireless, Wordpress\n\nOutput finale:\nRestituisci solo i 4 campi — Titolo, Contenuto, Invito alla lettura, Tag .\n\nNon aggiungere altro testo e non mettere in grassetto utilizzando markdown nessuna parola\n\nInput disponibili:\n- Titolo di riferimento: {{ $json.title.rendered }}\n- Articolo di riferimento: {{ $json.content.rendered }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2512,
+        1536
+      ],
+      "id": "78f591dc-bb6d-4ced-9772-6213057a73f1",
+      "name": "Sicurezza"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2448,
+        2160
+      ],
+      "id": "5291ce3b-a1c7-492f-81b9-93f8a209dd48",
+      "name": "Google Gemini Chat Model5",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "2tsRlyqr7LldioDI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -2448,
+        2672
+      ],
+      "id": "4c0d9136-c7fd-48a9-9cca-abb8bd2de278",
+      "name": "Google Gemini Chat Model6",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "2tsRlyqr7LldioDI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Se la data di pubblicazione {{ $json.date }} è più vecchia di 14 giorni rispetto a {{ $('Today date').item.json.Today }}, rrestituisci un oggetto con tutti i campi vuoti.\n\nSe invece la data è entro 14 giorni, genera un estratto dell’articolo seguendo queste regole:\n\nTitolo:\n- Massimo 20 caratteri\n- Deve catturare subito l’attenzione\n- Stile naturale, come scritto da un esperto umano\n\nContenuto:\n- Massimo 7 righe\n- In italiano fluente e coinvolgente\n- Riassunto originale dell’articolo (non copiare)\n- Deve incuriosire e spingere a leggere di più\n\nInvito alla lettura:\n- La frase deve essere persuasiva, ma mantenere un tono sobrio e adatto a una comunicazione aziendale.\n- Evita espressioni generiche o ripetitive come “Scopri di più” o “Leggi ora”.\n- Può includere una promessa di valore, un beneficio concreto o una domanda stimolante.\n- Assicurati che la frase sia diversa da quelle già utilizzate in precedenza.\n- Includi sempre questo link: {{ $json.link }}\n\nTag:\n- Scegli un solo tag dalla lista:\nAI, App, Cloud, Connettività, Cora, Cybersecurity, Digiclub, Digitalizzazione, Digitalway, Domotica, Ecommerce, Greenenergy, Hacking, Hardware, Hotel, Housekeeping, Marketing, Protezione, Seo, Serp, Sicurezza, Socialmedia, Software, Wireless, Wordpress\n\nOutput finale:\nRestituisci solo i 4 campi — Titolo, Contenuto, Invito alla lettura, Tag .\n\nNon aggiungere altro testo e non mettere in grassetto utilizzando markdown nessuna parola\n\nInput disponibili:\n- Titolo di riferimento: {{ $json.title.rendered }}\n- Articolo di riferimento: {{ $json.content.rendered }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2512,
+        1936
+      ],
+      "id": "9210d5bf-a838-422b-bfe6-b53a481bb4ae",
+      "name": "Excetera"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Se la data di pubblicazione {{ $json.date }} è più vecchia di 14 giorni rispetto a {{ $('Today date').item.json.Today }}, restituisci un oggetto con tutti i campi vuoti.\n\nSe invece la data è entro 14 giorni, genera un estratto dell’articolo seguendo queste regole:\n\nTitolo:\n- Massimo 20 caratteri\n- Deve catturare subito l’attenzione\n- Stile naturale, come scritto da un esperto umano\n\nContenuto:\n- Massimo 7 righe\n- In italiano fluente e coinvolgente\n- Riassunto originale dell’articolo (non copiare)\n- Deve incuriosire e spingere a leggere di più\n\nInvito alla lettura:\n- La frase deve essere persuasiva, ma mantenere un tono sobrio e adatto a una comunicazione aziendale.\n- Evita espressioni generiche o ripetitive come “Scopri di più” o “Leggi ora”.\n- Può includere una promessa di valore, un beneficio concreto o una domanda stimolante.\n- Assicurati che la frase sia diversa da quelle già utilizzate in precedenza.\n- Includi sempre questo link: {{ $json.link }}\n\n\nTag:\n- Scegli un solo tag dalla lista:\nAI, App, Cloud, Connettività, Cora, Cybersecurity, Digiclub, Digitalizzazione, Digitalway, Domotica, Ecommerce, Greenenergy, Hacking, Hardware, Hotel, Housekeeping, Marketing, Protezione, Seo, Serp, Sicurezza, Socialmedia, Software, Wireless, Wordpress\n\nOutput finale:\nRestituisci solo i 4 campi — Titolo, Contenuto, Invito alla lettura, Tag .\n\nNon aggiungere altro testo e non mettere in grassetto utilizzando markdown nessuna parola\n\nInput disponibili:\n- Titolo di riferimento: {{ $json.title.rendered }}\n- Articolo di riferimento: {{ $json.content.rendered }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2512,
+        736
+      ],
+      "id": "9d576759-bd2c-48ab-b975-77b988cff312",
+      "name": "Epiclink"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Se la data di pubblicazione {{ $json.date }} è più vecchia di 14 giorni rispetto a {{ $('Today date').item.json.Today }}, rrestituisci un oggetto con tutti i campi vuoti.\n\nSe invece la data è entro 14 giorni, genera un estratto dell’articolo seguendo queste regole:\n\nTitolo:\n- Massimo 20 caratteri\n- Deve catturare subito l’attenzione\n- Stile naturale, come scritto da un esperto umano\n\nContenuto:\n- Massimo 7 righe\n- In italiano fluente e coinvolgente\n- Riassunto originale dell’articolo (non copiare)\n- Deve incuriosire e spingere a leggere di più\n\nInvito alla lettura:\n- La frase deve essere persuasiva, ma mantenere un tono sobrio e adatto a una comunicazione aziendale.\n- Evita espressioni generiche o ripetitive come “Scopri di più” o “Leggi ora”.\n- Può includere una promessa di valore, un beneficio concreto o una domanda stimolante.\n- Assicurati che la frase sia diversa da quelle già utilizzate in precedenza.\n- Includi sempre questo link: {{ $json.link }}\n\nTag:\n- Scegli un solo tag dalla lista:\nAI, App, Cloud, Connettività, Cora, Cybersecurity, Digiclub, Digitalizzazione, Digitalway, Domotica, Ecommerce, Greenenergy, Hacking, Hardware, Hotel, Housekeeping, Marketing, Protezione, Seo, Serp, Sicurezza, Socialmedia, Software, Wireless, Wordpress\n\nOutput finale:\nRestituisci solo i 4 campi — Titolo, Contenuto, Invito alla lettura, Tag .\n\nNon aggiungere altro testo e non mettere in grassetto utilizzando markdown nessuna parola\n\nInput disponibili:\n- Titolo di riferimento: {{ $json.title.rendered }}\n- Articolo di riferimento: {{ $json.content.rendered }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2512,
+        336
+      ],
+      "id": "83e30478-1f5f-47d9-adbe-c01bc547610a",
+      "name": "DigitalWay"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Se la data di pubblicazione {{ $json.date }} è più vecchia di 14 giorni rispetto a {{ $('Today date').item.json.Today }}, restituisci un oggetto con tutti i campi vuoti.\n\nSe invece la data è entro 14 giorni, genera un estratto dell’articolo seguendo queste regole:\n\nTitolo:\n- Massimo 20 caratteri\n- Deve catturare subito l’attenzione\n- Stile naturale, come scritto da un esperto umano\n\nContenuto:\n- Massimo 7 righe\n- In italiano fluente e coinvolgente\n- Riassunto originale dell’articolo (non copiare)\n- Deve incuriosire e spingere a leggere di più\n\nInvito alla lettura:\n- La frase deve essere persuasiva, ma mantenere un tono sobrio e adatto a una comunicazione aziendale.\n- Evita espressioni generiche o ripetitive come “Scopri di più” o “Leggi ora”.\n- Può includere una promessa di valore, un beneficio concreto o una domanda stimolante.\n- Assicurati che la frase sia diversa da quelle già utilizzate in precedenza.\n- Includi sempre questo link: {{ $json.link }}\n\nTag:\n- Scegli un solo tag dalla lista:\nAI, App, Cloud, Connettività, Cora, Cybersecurity, Digiclub, Digitalizzazione, Digitalway, Domotica, Ecommerce, Greenenergy, Hacking, Hardware, Hotel, Housekeeping, Marketing, Protezione, Seo, Serp, Sicurezza, Socialmedia, Software, Wireless, Wordpress\n\nOutput finale:\nRestituisci solo i 4 campi — Titolo, Contenuto, Invito alla lettura, Tag — senza aggiungere altro testo o spiegazioni.\n\nInput disponibili:\n- Titolo di riferimento: {{ $json.title.rendered }}\n- Articolo di riferimento: {{ $json.content.rendered }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2512,
+        -64
+      ],
+      "id": "cd00f792-7032-4115-907e-c849585c5d42",
+      "name": "Ibasic"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Se la data di pubblicazione {{ $json.date }} è più vecchia di 14 giorni rispetto a {{ $('Today date').item.json.Today }}, restituisci un oggetto con tutti i campi vuoti.\n\nSe invece la data è entro 14 giorni, genera un estratto dell’articolo seguendo queste regole:\n\nTitolo:\n- Massimo 20 caratteri\n- Deve catturare subito l’attenzione\n- Stile naturale, come scritto da un esperto umano\n\nContenuto:\n- Massimo 7 righe\n- In italiano fluente e coinvolgente\n- Riassunto originale dell’articolo (non copiare)\n- Deve incuriosire e spingere a leggere di più\n\nInvito alla lettura:\n- La frase deve essere persuasiva, ma mantenere un tono sobrio e adatto a una comunicazione aziendale.\n- Evita espressioni generiche o ripetitive come “Scopri di più” o “Leggi ora”.\n- Può includere una promessa di valore, un beneficio concreto o una domanda stimolante.\n- Assicurati che la frase sia diversa da quelle già utilizzate in precedenza.\n- Includi sempre questo link: {{ $json.link }}\n\n\nTag:\n- Scegli un solo tag dalla lista:\nAI, App, Cloud, Connettività, Cora, Cybersecurity, Digiclub, Digitalizzazione, Digitalway, Domotica, Ecommerce, Greenenergy, Hacking, Hardware, Hotel, Housekeeping, Marketing, Protezione, Seo, Serp, Sicurezza, Socialmedia, Software, Wireless, Wordpress\n\nOutput finale:\nRestituisci solo i 4 campi — Titolo, Contenuto, Invito alla lettura, Tag .\n\nNon aggiungere altro testo e non mettere in grassetto utilizzando markdown nessuna parola\n\nInput disponibili:\n- Titolo di riferimento: {{ $json.title.rendered }}\n- Articolo di riferimento: {{ $json.content.rendered }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2512,
+        1136
+      ],
+      "id": "1ce55448-47d3-45a4-9444-1117220fa760",
+      "name": "ImpiantiDomotica"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Se la data di pubblicazione {{ $json.date }} è più vecchia di 14 giorni rispetto a {{ $('Today date').item.json.Today }}, rrestituisci un oggetto con tutti i campi vuoti.\n\nSe invece la data è entro 14 giorni, genera un estratto dell’articolo seguendo queste regole:\n\nTitolo:\n- Massimo 20 caratteri\n- Deve catturare subito l’attenzione\n- Stile naturale, come scritto da un esperto umano\n\nContenuto:\n- Massimo 7 righe\n- In italiano fluente e coinvolgente\n- Riassunto originale dell’articolo (non copiare)\n- Deve incuriosire e spingere a leggere di più\n\nInvito alla lettura:\n- La frase deve essere persuasiva, ma mantenere un tono sobrio e adatto a una comunicazione aziendale.\n- Evita espressioni generiche o ripetitive come “Scopri di più” o “Leggi ora”.\n- Può includere una promessa di valore, un beneficio concreto o una domanda stimolante.\n- Assicurati che la frase sia diversa da quelle già utilizzate in precedenza.\n- Includi sempre questo link: {{ $json.link }}\n\n\nTag:\n- Scegli un solo tag dalla lista:\nAI, App, Cloud, Connettività, Cora, Cybersecurity, Digiclub, Digitalizzazione, Digitalway, Domotica, Ecommerce, Greenenergy, Hacking, Hardware, Hotel, Housekeeping, Marketing, Protezione, Seo, Serp, Sicurezza, Socialmedia, Software, Wireless, Wordpress\n\nOutput finale:\nRestituisci solo i 4 campi — Titolo, Contenuto, Invito alla lettura, Tag .\n\nNon aggiungere altro testo e non mettere in grassetto utilizzando markdown nessuna parola\n\nInput disponibili:\n- Titolo di riferimento: {{ $json.title.rendered }}\n- Articolo di riferimento: {{ $json.content.rendered }}\n",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -2512,
+        2448
+      ],
+      "id": "2f34b5e7-871a-4d50-915e-f0430b749c2f",
+      "name": "CoraHospitality"
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        48
+      ],
+      "id": "ad3ec11c-59a8-4aa2-a0ea-1d092519fe77",
+      "name": "Get a post Ibasic",
+      "credentials": {
+        "wordpressApi": {
+          "id": "TbbSVS94XcedfIC5",
+          "name": "Wordpress ibasic.it"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        448
+      ],
+      "id": "b025c292-96ba-440c-8116-b50246baf35d",
+      "name": "Get a post Digital",
+      "credentials": {
+        "wordpressApi": {
+          "id": "bzD14DBLlPVhoFAK",
+          "name": "Wordpress digitalway.it"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        848
+      ],
+      "id": "32aeeb15-ca9e-4d7d-ac02-f3aa1f768537",
+      "name": "Get a post Epic",
+      "credentials": {
+        "wordpressApi": {
+          "id": "OsiZgRoyySokQ57S",
+          "name": "Wordpress epiclink.it"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        1248
+      ],
+      "id": "1896783a-93cc-4ccb-8710-de15ae15e326",
+      "name": "Get a post Impianti",
+      "credentials": {
+        "wordpressApi": {
+          "id": "z34Zj278XM6iiq8t",
+          "name": "Wordpress impiantidomotica.it"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        1648
+      ],
+      "id": "08eabf4f-24dc-4b10-858d-99776d2e9c82",
+      "name": "Get a post Sicurezza",
+      "credentials": {
+        "wordpressApi": {
+          "id": "vdXh9Mc42K9QRjgf",
+          "name": "Wordpress sicurezza.net"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        2048
+      ],
+      "id": "90bde05a-76a2-44e6-b431-15d063efb28a",
+      "name": "Get a post Excetera",
+      "credentials": {
+        "wordpressApi": {
+          "id": "iHOGbAwJBAAtp0mO",
+          "name": "Wordpress excetera.it"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "limit": 1,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wordpress",
+      "typeVersion": 1,
+      "position": [
+        -2736,
+        2448
+      ],
+      "id": "67310fe1-8cf6-418f-a41a-7dfcf1e3e832",
+      "name": "Get a post Cora",
+      "credentials": {
+        "wordpressApi": {
+          "id": "9vIY2YGnfUBrexlI",
+          "name": "Wordpress corahospitality.com"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recupero il testo dall'output del nodo precedente\nconst testo = items[0].json.output;\n\n// Regex per catturare le varie sezioni (senza **)\nconst regexTitolo = /Titolo:\\s*([\\s\\S]*?)\\n/;\nconst regexContenuto = /Contenuto:\\s*([\\s\\S]*?)\\nInvito/;\nconst regexInvito = /Invito alla lettura:\\s*([\\s\\S]*?)\\s+(https?:\\/\\/\\S+)/;\nconst regexTag = /Tag:\\s*(.+)/;\n\n// Estrazione\nconst titolo_dw = testo.match(regexTitolo)?.[1].trim() || \"\";\nconst contenuto_dw = testo.match(regexContenuto)?.[1].trim() || \"\";\nconst invitoMatch = testo.match(regexInvito);\nconst invito = invitoMatch?.[1].trim() || \"\";\nconst link_dw = invitoMatch?.[2].trim() || \"\";\nconst tag_dw = testo.match(regexTag)?.[1].trim() || \"\";\n\n// Restituisco un array di items compatibile con n8n\nreturn [\n  {\n    json: {\n      titolo_dw,\n      contenuto_dw,\n      call_to_action_dw: invito,\n      link_dw,\n      tag_dw\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2160,
+        448
+      ],
+      "id": "c0209310-7051-4bd5-9698-bb9ecb6668e7",
+      "name": "Code Digital"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recupero il testo dall'output del nodo precedente\nconst testo = items[0].json.output;\n\n// Regex per catturare le varie sezioni (senza **)\nconst regexTitolo = /Titolo:\\s*([\\s\\S]*?)\\n/;\nconst regexContenuto = /Contenuto:\\s*([\\s\\S]*?)\\nInvito/;\nconst regexInvito = /Invito alla lettura:\\s*([\\s\\S]*?)\\s+(https?:\\/\\/\\S+)/;\nconst regexTag = /Tag:\\s*(.+)/;\n\n// Estrazione\nconst titolo_ib = testo.match(regexTitolo)?.[1].trim() || \"\";\nconst contenuto_ib = testo.match(regexContenuto)?.[1].trim() || \"\";\nconst invitoMatch = testo.match(regexInvito);\nconst invito = invitoMatch?.[1].trim() || \"\";\nconst link_ib = invitoMatch?.[2].trim() || \"\";\nconst tag_ib = testo.match(regexTag)?.[1].trim() || \"\";\n\n// Restituisco un array di items compatibile con n8n\nreturn [\n  {\n    json: {\n      titolo_ib,\n      contenuto_ib,\n      call_to_action_ib: invito,\n      link_ib,\n      tag_ib\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2160,
+        48
+      ],
+      "id": "68381910-2b24-4f7e-a9b7-da4d4ee77a0a",
+      "name": "Code Ibasic"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recupero il testo dall'output del nodo precedente\nconst testo = items[0].json.output;\n\n// Regex per catturare le varie sezioni (senza **)\nconst regexTitolo = /Titolo:\\s*([\\s\\S]*?)\\n/;\nconst regexContenuto = /Contenuto:\\s*([\\s\\S]*?)\\nInvito/;\nconst regexInvito = /Invito alla lettura:\\s*([\\s\\S]*?)\\s+(https?:\\/\\/\\S+)/;\nconst regexTag = /Tag:\\s*(.+)/;\n\n// Estrazione\nconst titolo_ep = testo.match(regexTitolo)?.[1].trim() || \"\";\nconst contenuto_ep = testo.match(regexContenuto)?.[1].trim() || \"\";\nconst invitoMatch = testo.match(regexInvito);\nconst invito = invitoMatch?.[1].trim() || \"\";\nconst link_ep = invitoMatch?.[2].trim() || \"\";\nconst tag_ep = testo.match(regexTag)?.[1].trim() || \"\";\n\n// Restituisco un array di items compatibile con n8n\nreturn [\n  {\n    json: {\n      titolo_ep,\n      contenuto_ep,\n      call_to_action_ep: invito,\n      link_ep,\n      tag_ep\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2160,
+        848
+      ],
+      "id": "cfa9175d-5336-4422-8ccb-d3ebff931293",
+      "name": "Code Epic"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recupero il testo dall'output del nodo precedente\nconst testo = items[0].json.output;\n\n// Regex per catturare le varie sezioni (senza **)\nconst regexTitolo = /Titolo:\\s*([\\s\\S]*?)\\n/;\nconst regexContenuto = /Contenuto:\\s*([\\s\\S]*?)\\nInvito/;\nconst regexInvito = /Invito alla lettura:\\s*([\\s\\S]*?)\\s+(https?:\\/\\/\\S+)/;\nconst regexTag = /Tag:\\s*(.+)/;\n\n// Estrazione\nconst titolo_im = testo.match(regexTitolo)?.[1].trim() || \"\";\nconst contenuto_im = testo.match(regexContenuto)?.[1].trim() || \"\";\nconst invitoMatch = testo.match(regexInvito);\nconst invito = invitoMatch?.[1].trim() || \"\";\nconst link_im = invitoMatch?.[2].trim() || \"\";\nconst tag_im = testo.match(regexTag)?.[1].trim() || \"\";\n\n// Restituisco un array di items compatibile con n8n\nreturn [\n  {\n    json: {\n      titolo_im,\n      contenuto_im,\n      call_to_action_im: invito,\n      link_im,\n      tag_im\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2160,
+        1248
+      ],
+      "id": "70fa2536-e7a5-4e37-a126-a2c69d7e03b1",
+      "name": "Code Impianti"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recupero il testo dall'output del nodo precedente\nconst testo = items[0].json.output;\n\n// Regex per catturare le varie sezioni (senza **)\nconst regexTitolo = /Titolo:\\s*([\\s\\S]*?)\\n/;\nconst regexContenuto = /Contenuto:\\s*([\\s\\S]*?)\\nInvito/;\nconst regexInvito = /Invito alla lettura:\\s*([\\s\\S]*?)\\s+(https?:\\/\\/\\S+)/;\nconst regexTag = /Tag:\\s*(.+)/;\n\n// Estrazione\nconst titolo_si = testo.match(regexTitolo)?.[1].trim() || \"\";\nconst contenuto_si = testo.match(regexContenuto)?.[1].trim() || \"\";\nconst invitoMatch = testo.match(regexInvito);\nconst invito = invitoMatch?.[1].trim() || \"\";\nconst link_si = invitoMatch?.[2].trim() || \"\";\nconst tag_si = testo.match(regexTag)?.[1].trim() || \"\";\n\n// Restituisco un array di items compatibile con n8n\nreturn [\n  {\n    json: {\n      titolo_si,\n      contenuto_si,\n      call_to_action_si: invito,\n      link_si,\n      tag_si\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2160,
+        1648
+      ],
+      "id": "19339dd4-1c6f-4231-8d33-0fe9596d4c60",
+      "name": "Code Sicurezza"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recupero il testo dall'output del nodo precedente\nconst testo = items[0].json.output;\n\n// Regex per catturare le varie sezioni (senza **)\nconst regexTitolo = /Titolo:\\s*([\\s\\S]*?)\\n/;\nconst regexContenuto = /Contenuto:\\s*([\\s\\S]*?)\\nInvito/;\nconst regexInvito = /Invito alla lettura:\\s*([\\s\\S]*?)\\s+(https?:\\/\\/\\S+)/;\nconst regexTag = /Tag:\\s*(.+)/;\n\n// Estrazione\nconst titolo_ex = testo.match(regexTitolo)?.[1].trim() || \"\";\nconst contenuto_ex = testo.match(regexContenuto)?.[1].trim() || \"\";\nconst invitoMatch = testo.match(regexInvito);\nconst invito = invitoMatch?.[1].trim() || \"\";\nconst link_ex = invitoMatch?.[2].trim() || \"\";\nconst tag_ex = testo.match(regexTag)?.[1].trim() || \"\";\n\n// Restituisco un array di items compatibile con n8n\nreturn [\n  {\n    json: {\n      titolo_ex,\n      contenuto_ex,\n      call_to_action_ex: invito,\n      link_ex,\n      tag_ex\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2160,
+        2048
+      ],
+      "id": "677eddbe-18e0-4d10-abfb-c5750b4323e5",
+      "name": "Code Excetera"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Recupero il testo dall'output del nodo precedente\nconst testo = items[0].json.output;\n\n// Regex per catturare le varie sezioni (senza **)\nconst regexTitolo = /Titolo:\\s*([\\s\\S]*?)\\n/;\nconst regexContenuto = /Contenuto:\\s*([\\s\\S]*?)\\nInvito/;\nconst regexInvito = /Invito alla lettura:\\s*([\\s\\S]*?)\\s+(https?:\\/\\/\\S+)/;\nconst regexTag = /Tag:\\s*(.+)/;\n\n// Estrazione\nconst titolo_co = testo.match(regexTitolo)?.[1].trim() || \"\";\nconst contenuto_co = testo.match(regexContenuto)?.[1].trim() || \"\";\nconst invitoMatch = testo.match(regexInvito);\nconst invito = invitoMatch?.[1].trim() || \"\";\nconst link_co = invitoMatch?.[2].trim() || \"\";\nconst tag_co = testo.match(regexTag)?.[1].trim() || \"\";\n\n// Restituisco un array di items compatibile con n8n\nreturn [\n  {\n    json: {\n      titolo_co,\n      contenuto_co,\n      call_to_action_co: invito,\n      link_co,\n      tag_co\n    }\n  }\n];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -2160,
+        2448
+      ],
+      "id": "7b1dbcc4-afcb-4a77-863b-3cea7483f079",
+      "name": "Code Cora"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "df90511f-510f-4c3b-8560-fb74bc6d83a5",
+              "name": "text",
+              "value": "=Data di invio newsletter: {{ $('Today date').item.json.Today }}\n\n\nIB:\nTitolo:{{ $json.data[0].titolo_ib }}\nTesto:{{ $json.data[0].contenuto_ib }}\n<br>:{{ $json.data[0].call_to_action_ib }}\nlink:{{ $json.data[0].link_ib }}\n@:{{ $json.data[0].tag_ib }}\n\nDW:\nTitolo:{{ $json.data[1].titolo_dw }}\nTesto:{{ $json.data[1].contenuto_dw }}\n<br>:{{ $json.data[1].call_to_action_dw }}\nlink:{{ $json.data[1].link_dw }}\n@:{{ $json.data[1].tag_dw }}\n\nEP: \nTitolo: {{ $json.data[2].titolo_ep }} \nTesto: {{ $json.data[2].contenuto_ep }}\n<br>: {{ $json.data[2].call_to_action_ep }}\nlink:{{ $json.data[2].link_ep }}\n@ {{ $json.data[2].tag_ep }}\n\nIMPIANTI:\nTitolo: {{ $json.data[3].titolo_im }}\nTesto: {{ $json.data[3].contenuto_im }}\n<br>: {{ $json.data[3].call_to_action_im }}\nlink:{{ $json.data[3].link_im }}\n@: {{ $json.data[3].tag_im }} \n\nSICUREZZA:\nTitolo: {{ $json.data[4].titolo_si }}\nTesto: {{ $json.data[4].contenuto_si }}\n<br>: {{ $json.data[4].call_to_action_si }}\nlink:{{ $json.data[4].link_si }}\n@: {{ $json.data[4].tag_si }}\n\nEX:\nTitolo:{{ $json.data[5].titolo_ex }}\nTesto: {{ $json.data[5].contenuto_ex }}\n<br>: {{ $json.data[5].call_to_action_ex }}\nlink: {{ $json.data[5].link_ex }}\n@: {{ $json.data[5].tag_ex }}\n\nCORA:\nTitolo: {{ $json.data[6].titolo_co }}\nTesto: {{ $json.data[6].contenuto_co }}\n<br>: {{ $json.data[6].call_to_action_co }}\nlink: {{ $json.data[6].link_co }}\n@: {{ $json.data[6].tag_co }}\n",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1552,
+        1248
+      ],
+      "id": "45aec259-6e52-40a0-8f5f-f223ed1cfed7",
+      "name": "List of briefes"
+    },
+    {
+      "parameters": {
+        "numberInputs": 7
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1936,
+        1168
+      ],
+      "id": "2a24930c-6fdc-4d2c-beac-8fcae26e53d4",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1760,
+        1248
+      ],
+      "id": "f60dfb1a-2122-482e-929e-f8ca1295d3f7",
+      "name": "Aggregate"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        0,
+        1472
+      ],
+      "id": "c2c8356f-207a-4c58-8765-92084dc83982",
+      "name": "Google Gemini Chat Model7",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "2tsRlyqr7LldioDI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ottieni la data di oggi\nconst today = new Date();\n\n// Formatta la data come stringa (es. \"2025-08-28\")\nconst formattedDate = today.toISOString().split('T')[0];\n\n// Restituisci la data come output\nreturn [\n  {\n    json: {\n      Today: formattedDate\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -3024,
+        1248
+      ],
+      "id": "76d32c38-9399-42a5-ac8d-c7c136546e06",
+      "name": "Today date"
+    },
+    {
+      "parameters": {
+        "content": "## La data di oggi\nScript che restituisce la data idierna\n",
+        "height": 224,
+        "width": 208,
+        "color": 2
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3072,
+        1152
+      ],
+      "id": "d76ce8bc-2c8f-46d3-b2e1-f056561c61a0",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Fonti degli articoli \nRicaviamo articoli da 7 fonti",
+        "height": 2736,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2816,
+        -96
+      ],
+      "id": "df85b7d2-30e1-41ed-a2d1-b6c46e858252",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "operation": "html",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1792,
+        912
+      ],
+      "id": "f0f8a83e-8f59-45f9-b0d8-17bd629a6f18",
+      "name": "Creazione file NewsLetter"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Devi creare una newsletter seguendo la struttura e lo stile dell’“Esempio” che ti fornirò.\n\nUsa come contenuto principale le informazioni prese dalla Fonte che ti darò.\n\nIncludi solo le informazioni presenti nella Fonte: se un dettaglio non è disponibile, non inventarlo e non inserirlo.\n\nMantieni la formattazione, il tono e lo stile dell’Esempio (titoli, sezioni, call-to-action, ecc.).\n\nNon cambiare l’ordine delle sezioni rispetto all’Esempio, a meno che la Fonte non contenga parti mancanti (in tal caso salta la sezione).\n\nL’obiettivo è ottenere una newsletter pronta per essere inviata, fedele al modello fornito e con contenuti aggiornati dalla Fonte.\n\nLa data è questa:{{ $('Today date').item.json.Today }}.\n\n\nEsempio: \"<!DOCTYPE html>\n<html lang=\"it\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Newsletter del 28 Agosto 2025</title>\n</head>\n<body style=\"margin: 0; padding: 0; background-color: #FAFAFA;\">\n        <table align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"600\">\n        <!-- Company Header -->\n        <tr>\n            <td align=\"left\" style=\"padding: 20px; background-color: #ffffff;\">\n                <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 18.5px; letter-spacing: 0.2px; margin-top: 13px; margin-bottom: 5px;\">Newsletter del 28 Agosto 2025</p>\n            </td>\n        </tr>\n        <!-- Confirm text -->\n        <tr>\n            <td align=\"center\" style=\"background-color: #2c3e50; padding-top: 30px; padding-bottom: 15px;\">\n                <img src=\"https://lead.digiclub.it/media/images/digiclub_bianco.png\" alt=\"DIGICLUB\" width=\"150\" height=\"110\" style=\"width:150px;\" \"height:110px;\"/>\n            </td>\n        </tr>\n        <tr>\n            <td align=\"center\" style=\"background-color: #2c3e50;\">\n                <H1 align=\"left\" style=\"color: #ffffff; font-family: 'Source Sans Pro'; font-size: 25.5px; line-height: 20px; letter-spacing: 0.5px; font-weight: bold; margin-bottom: 25px; margin-right: 35px; margin-left: 35px;\">\n                    Digiclub: La tua rassegna stampa esclusiva</H1>\n              <p align=\"left\" style=\"color: #ffffff; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: 400; margin-bottom: 25px; margin-right: 35px; margin-left: 35px; padding-bottom: 15px;\">\n                    DIGICLUB è la rassegna stampa esclusiva e dinamica che ti offre uno sguardo privilegiato sulle innovazioni e le tendenze che stanno plasmando il nostro futuro tecnologico. Ogni articolo è come una finestra sulle aziende del nostro gruppo  che ti permette di esplorare le molteplici dimensioni del lavoro digitale e di scoprire le eccellenze che ne fanno parte.\n                </p>\n            </td>\n        </tr>\n        <!-- Other sections -->\n        <!-- You can continue the same pattern for other sections -->\n        <!-- Footer -->\n                <tr>\n            <td align=\"left\" style=\"background-color: #ffffff; padding-top: 50px; padding-bottom: 45px; padding-right: 35px; padding-left: 35px;\">\n                <H2 style=\"color: #058987; font-family: 'Source Sans Pro'; font-size: 21.5px; letter-spacing: 0.3px; line-height: 20px; font-weight: bold;\">01 - L’AI che ti protegge</H2>\n                <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: 400; margin-top: 15px; margin-bottom: 20px;\">\n                    FortiGuard AI-Powered Security Services porta la difesa aziendale a un livello superiore: grazie all’intelligenza artificiale, e integrato nativamente nella Fortinet Security Fabric, riconosce e neutralizza in tempo reale attacchi zero-day, malware invisibili e minacce AI-driven.\n<br>Leggi di più e scopri come questa tecnologia può proteggere la tua azienda.\n                </p>\n              <a href=\"https://digitalway.it/security-networking/scopri-cose-fortiguard-ai-driven-come-protegge-azienda/\" target=\"_blank\" style=\"text-decoration: underline; font-size: 15.5px; font-family: 'Source Serif Pro'; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;\">LEGGI L'ARTICOLO</a>\n              <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: bold; margin-top: 20px; margin-bottom: 35px;\">\n              dal sito digitalway.it\n                </p>\n              </td>\n        </tr>\n            <tr>\n            <td align=\"left\" style=\"background-color: #ffffff; padding-bottom: 45px; padding-right: 35px; padding-left: 35px;\">\n                <H2 style=\"color: #058987; font-family: 'Source Sans Pro'; font-size: 21.5px; letter-spacing: 0.3px; line-height: 30px; font-weight: bold;\">02 - Modelli di Cloud Computing: quale scegliere?</H2>\n                <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: 400; margin-top: 15px; margin-bottom: 20px;\">\n             Il cloud computing non è un’unica soluzione, ma tre modelli distinti, ognuno con caratteristiche specifiche e vantaggi unici. Scegliere il servizio giusto non è semplice, ma con noi puoi informarti e valutare al meglio ogni opzione.\n<br>Scopri quale di queste soluzioni si adatta meglio alla tua realtà.\n                </p>\n              <a href=\"https://epiclink.it/paas-saas-iaas-guida-completa-modelli-cloud-computing/\" target=\"_blank\" style=\"text-decoration: underline; font-size: 15.5px; font-family: 'Source Serif Pro'; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;\">LEGGI L'ARTICOLO</a>\n              <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: bold; margin-top: 20px; margin-bottom: 35px;\">\n               dal sito epiclink.it\n                </p>\n              </td>\n        </tr>\n      <tr>\n            <td align=\"left\" style=\"background-color: #ffffff; padding-bottom: 45px; padding-right: 35px; padding-left: 35px;\">\n                <H2 style=\"color: #058987; font-family: 'Source Sans Pro'; font-size: 21.5px; letter-spacing: 0.3px; line-height: 20px; font-weight: bold;\">03 - Energia elettrica senza rischi</H2>\n                <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: 400; margin-top: 15px; margin-bottom: 20px;\">\n                  Il dimensionamento degli impianti elettrici non è solo un calcolo tecnico: significa sicurezza, efficienza e rispetto delle norme. Un impianto ben progettato riduce i rischi di guasti e incendi, evita costi superflui e diventa un alleato silenzioso nella vita quotidiana.\n<br>Svela tutti i vantaggi di un impianto elettrico realizzato su misura.\n          </p>\n              <a href=\"https://impiantidomotica.it/magazine/dimensionamento-di-impianti-elettrici/\" target=\"_blank\" style=\"text-decoration: underline; font-size: 15.5px; font-family: 'Source Serif Pro'; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;\">LEGGI L'ARTICOLO</a>\n                <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: bold; margin-top: 20px; margin-bottom: 35px;\">\n               dal sito impiantidomotica.it\n                </p>\n              </td>\n        </tr>\n      <tr>\n            <td align=\"left\" style=\"background-color: #ffffff; padding-bottom: 45px; padding-right: 35px; padding-left: 35px;\">\n                <H2 style=\"color: #058987; font-family: 'Source Sans Pro'; font-size: 21.5px; letter-spacing: 0.3px; line-height: 20px; font-weight: bold;\">04 - Robot che imparano insieme</H2>\n                <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: 400; margin-top: 15px; margin-bottom: 20px;\">\n               È nata una rete neurale che connette robot intelligenti attraverso il sistema FABRIC, trasformando singoli automi in un’intelligenza collettiva capace di apprendere e collaborare in modo distribuito. Questa architettura rivoluzionaria rompe gli schemi della robotica tradizionale, aprendo la strada a macchine sempre più reattive, adattive e autonome.\n<br>Scopri come il futuro dell’AI sta cambiando e quali opportunità concrete può offrire.\n                </p>\n              <a href=\"https://sicurezza.net/domotica-smart-home/robot-openmind-nasce-la-rete-neurale-dei-robot-intelligenti/\" target=\"_blank\" style=\"text-decoration: underline; font-size: 15.5px; font-family: 'Source Serif Pro'; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase;\">LEGGI L'ARTICOLO</a>\n                <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: bold; margin-top: 20px; margin-bottom: 35px;\">\n               dal sito sicurezza.net\n                </p>\n              </td>\n        </tr>\n      <tr>\n            <td align=\"left\" style=\"background-color: #ffffff; padding-bottom: 70px; padding-right: 35px; padding-left: 35px;\">\n                <H2 style=\"color: #058987; font-family: 'Source Sans Pro'; font-size: 21.5px; letter-spacing: 0.3px; line-height: 30px; font-weight: bold;\">05 - Un'igiene che parla per te</H2>\n                <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: 400; margin-top: 15px; margin-bottom: 20px;\">\n                 Oggi la sanificazione in hotel è molto più di un obbligo, ma un vero segno di attenzione e cura. Con protocolli chiari, prodotti certificati e personale formato, ogni intervento diventa una dichiarazione di responsabilità che ispira fiducia nei clienti. Le strutture che investono in questi aspetti non solo ottengono recensioni positive, ma riescono anche a ottimizzare tempi, costi e processi operativi.\n<br>Impara come distinguerti dalla concorrenza e trasformare l’igiene in un fattore di fidelizzazione.\n                </p>\n              <a href=\"https://corahospitality.com/housekeeping/sanificazione-obbligatoria-hotel/\" target=\"_blank\" style=\"text-decoration: underline; font-size: 15.5px; font-family: 'Source Serif Pro'; font-weight: bold; letter-spacing: 1px; letter-spacing: 0.5px; text-transform: uppercase;\">LEGGI L'ARTICOLO</a>\n                <p style=\"color: #000000; font-family: 'Source Serif Pro'; font-size: 15.5px; letter-spacing: 0.5px; line-height: 30px; font-weight: bold; margin-top: 20px; margin-bottom: 35px;\">\n               dal sito corahospitality.com\n                </p>\n              </td>\n        </tr>\n      <tr>\n        <td align=\"center\" style=\"background-color: #2c3e50; padding-top: 0px; padding-bottom: 10px;\">\n                <H3 align=\"left\" style=\"color: #ffffff; font-family: 'Source Sans Pro'; font-size: 20.5px; line-height: 30px; letter-spacing: 0.3px; font-weight: 700; margin-top: 35px; margin-right: 25px; margin-left: 35px;\">Ultime novità, fatti e tendenze del mondo digitale</H3>\n                <p align=\"left\" style=\"color: #ffffff; font-family: 'Source Serif Pro'; font-size: 15px; letter-spacing: 0.5px; line-height: 30px; font-weight: 400; margin-top: 20px; margin-bottom: 18px; margin-right: 35px; margin-left: 35px;\">\n                   DIGICLUB è un servizio di newsletter dedicato al mondo digitale, in collaborazione con un gruppo di aziende tecnologiche.\n\t\t\t<br>Visita i nostri siti per maggiori informazioni.\n                </p>\n                <a href=\"https://digiclub.it\" style=\"display: inline-block; padding: 10px 30px; margin-bottom: 15px; background-color: #497199; color: #ffffff; border-radius: 25px; text-decoration: none; font-size: 20px; font-family: 'Source Sans Pro'; font-weight: bold; letter-spacing: 1.5px;\">SCOPRI DI PIÙ</a>\n            </td>\n        </tr>\n        <!-- Links -->\n        <tr>\n            <td align=\"center\" style=\"background-color: #2c3e50;\">\n                <img src=\"https://digiclub.it/wp-content/uploads/2024/12/Logh_gruppo.jpg\" alt=\"Logh_gruppo\" width=\"100%\" style=\"padding-top: 20px;\">\n                <p style=\"color: #ffffff; font-family: 'Source Serif Pro'; font-size: 10px; line-height: 10px; text-transform: uppercase; padding: 5px 0;\">\n                    <a href=\"mailto:marketing@ibasic.it\" target=\"_blank\" style=\"color: #CFF8FF; text-decoration: underline;\">CONTATTI</a> |\n                    <a href=\"https://www.iubenda.com/privacy-policy/76920705\" target=\"_blank\" style=\"color: #CFF8FF; text-decoration: underline;\">PRIVACY POLICY</a> |\n                    <a href=\"{unsubscribe_url}\" target=\"_blank\" style=\"color: #CFF8FF; text-decoration: underline;\">UNSUBSCRIBE</a>\n                </p>\n                <p style=\"color: #ffffff; font-family: 'Source Serif Pro'; font-size: 9px; line-height: 10px; text-transform: uppercase; margin-top: 30px; padding: 0 0 10px 0;\">© 2025 DigiClub - All Rights Reserved</p>\n                <p style=\"color: #ffffff; font-family: 'Source Serif Pro'; font-size: 9px; line-height: 18px; text-transform: uppercase; margin-bottom: 40px; padding: 5px 0; margin-right: 20px; margin-left: 20px;\">Ricevi questa mail perché sei iscritto nel databases e per il quale hai accettato di ricevere notizie dai nostri partners. Se desideri annullare l'iscrizione clicca su UNSUBSCRIBE</p>\n            </td>\n        </tr>\n    </table>\n</body>\n</html>\n\"\n\nFonte: {{ $('List of briefes').item.json.text }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        1264
+      ],
+      "id": "da025e27-29bb-47d8-9058-fc1cad02c786",
+      "name": "Creazione Newsletter"
+    },
+    {
+      "parameters": {
+        "jsCode": "\n// Prendi il testo dal campo \"output\" (adatta il nome se diverso)\nconst text = $json[\"output\"];\n\n// Estrae tutto ciò che sta tra ```html e ```\nconst match = text.match(/```html([\\s\\S]*?)```/i);\n\nif (match && match[1]) {\n  const htmlOnly = match[1].trim();\n  return { html: htmlOnly };\n} else {\n  return { html: \"Nessun blocco HTML trovato.\" };\n}\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        320,
+        1264
+      ],
+      "id": "6340e5b1-40f9-4ef3-985b-47356ee8669d",
+      "name": "Code Sistemazione Finale"
+    },
+    {
+      "parameters": {
+        "content": "## Controllo articoli\nL'AI controlla la data di pubblicazione e ne restituisce un riassunto dell'articolo",
+        "height": 3056,
+        "width": 256
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2528,
+        -208
+      ],
+      "id": "3c565a9f-d014-4c02-b0a3-9e4beb973764",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Prima Impaginazione",
+        "height": 2720,
+        "width": 224,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -2224,
+        -96
+      ],
+      "id": "6dcf97a1-b7cd-4d55-922a-ee06b1910579",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {
+        "content": "## Unione degli articoli \nI testi generati verranno uniti in un unico testo",
+        "height": 320,
+        "width": 368,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1792,
+        1104
+      ],
+      "id": "cc9654e4-4dbe-466c-aac0-cf862e9f2ff8",
+      "name": "Sticky Note4"
+    },
+    {
+      "parameters": {
+        "content": "## Creazione Newsletter ",
+        "height": 496,
+        "width": 720,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -256,
+        1104
+      ],
+      "id": "e587b89c-2c9d-432e-b2c8-2e7ef9e961ed",
+      "name": "Sticky Note5"
+    },
+    {
+      "parameters": {
+        "content": "## Invio di controllo Newsletter tramite bozza",
+        "height": 512,
+        "width": 544,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        1008
+      ],
+      "id": "98ebcd87-656d-4cc7-be5e-d8169d3af915",
+      "name": "Sticky Note6"
+    },
+    {
+      "parameters": {
+        "content": "## Creazione file di testo con la Newsletter",
+        "height": 288,
+        "width": 448,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        800
+      ],
+      "id": "b30b52f3-6b78-4849-8ae7-141e046cbc17",
+      "name": "Sticky Note7"
+    },
+    {
+      "parameters": {
+        "content": "## Attesa conferma Newsletter\nil programma andra avanti solo in caso di conferma positiva della Newsletter altrimenti andrà a ricrearla",
+        "height": 320,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1072,
+        1120
+      ],
+      "id": "8f973b41-1571-4aba-9d53-cc1a0d3d96c1",
+      "name": "Sticky Note8"
+    },
+    {
+      "parameters": {
+        "content": "## Invio del file \nVerra inviato il file così da poter essere inviato",
+        "height": 256,
+        "width": 448,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2480,
+        896
+      ],
+      "id": "11472d35-daa9-4b82-8f39-9617460168be",
+      "name": "Sticky Note9"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                3
+              ],
+              "triggerAtHour": 9,
+              "triggerAtMinute": 30
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -3328,
+        1248
+      ],
+      "id": "08f0124f-d97e-437e-8dc9-a7146862a55f",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "content": "## Partenza workflow\nUna volta al mese verrà eseguito tutto il workflow",
+        "height": 272,
+        "width": 256,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -3392,
+        1120
+      ],
+      "id": "793b00bf-f30c-4607-851c-ce997e4550b5",
+      "name": "Sticky Note10"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -1024,
+        2096
+      ],
+      "id": "6e3c8224-cf0e-46c8-8508-80d8547d60af",
+      "name": "Google Gemini Chat Model8",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "2tsRlyqr7LldioDI",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('URL', ``, 'string') }}",
+        "options": {},
+        "optimizeResponse": true,
+        "responseType": "text"
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.2,
+      "position": [
+        -784,
+        2096
+      ],
+      "id": "e834f009-8fb8-4475-b80d-6a79480d0f5c",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5accf03c-2034-429b-bc25-83084fe7ad89",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": "true",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        1264
+      ],
+      "id": "55869876-3d17-42d5-bd78-a3c50b2c79f7",
+      "name": "Controllo Lavoro Finale"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "70821ef6-a888-43d4-9ae8-e196d0c179e8",
+              "name": "text",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -1328,
+        1248
+      ],
+      "id": "02a844b7-0a6b-43c9-9161-c390446b6e22",
+      "name": "Salvataggio Bozze prima dell'invio"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86ee6c4e-dd22-4187-96a9-bb96640c3751",
+              "name": "text",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -672,
+        1648
+      ],
+      "id": "50c1c215-a712-404b-be26-b10cd8576c9b",
+      "name": "Conversione testo Ai"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Riceverai un testo composto da più sezioni, ciascuna identificata da un codice univoco (IB, DW, EP, IMPIANTI, SICUREZZA, EX, CORA) nel campo {{ $json.data[0].text }}.\nRiceverai anche una lista di codici da modificare nel campo {{ $json.data[1].data['Dai la conferma oppure inserisci il codice degli articoli da inserire( es: DW:)'] }}.\nI codici possono essere scritti in maiuscolo o minuscolo: riconoscili indipendentemente dal formato, possono esserti forniti più codici(tra un codice ed un altro sarà presente una virgola), comportati allo stesso modo ma su più articoli\n\nPer ogni codice fornito:\n\nIdentifica la sezione corrispondente nel testo.\nSe la sezione contiene Titolo e Testo, riscrivila seguendo le regole sotto.\nSe è presente un link, visita la pagina e usa le informazioni per migliorare la riscrittura:\nNon copiare direttamente.\nIntegra solo contenuti utili e pertinenti.\nUsa solo il link associato al codice.\nSe una sezione di uno dei codici non contiene sia \"Titolo:\" che \"Testo:\", non apportare nessuna modifica.\nSe ricevi un codice univoco ma la sua sezione non contiene sia \"Titolo:\" che \"Testo:\", non apportare alcuna modifica.\nSe riceverai un codice univoco presente nel t\nSe il codice univoco che riceverai non è presente all'interno testo, non fare modifiche.\nSe il codice univoco fornito è simile ma non uguale a quelli forniti non modificare nulla.\n\nRegole di riscrittura:\n\nTitolo;\n\nMax 20 caratteri\nDeve catturare l’attenzione\nStile naturale, come scritto da un esperto umano\n\nTesto;\n\nMax 7 righe\nItaliano fluente e coinvolgente\nRiassunto originale dell’articolo\nDeve incuriosire e spingere alla lettura\nInvito alla lettura:\n\nUna frase breve e persuasiva:\n- La frase deve essere persuasiva, ma mantenere un tono sobrio e adatto a una comunicazione aziendale.\n- Evita espressioni generiche o ripetitive come “Scopri di più” o “Leggi ora”.\n- Può includere una promessa di valore, un beneficio concreto o una domanda stimolante.\n- Assicurati che la frase sia diversa da quelle già utilizzate in precedenza.\n\nOutput finale:\n\nSostituisci solo le sezioni modificate nel testo originale.\nMantieni tutte le altre sezioni intatte, senza alterazioni.\nRestituisci il testo completo, con le modifiche applicate solo dove richiesto.\n\nNote importanti:\n\n-Non inventare contenuti.\n-Mantieni una lunghezza simile o inferiore rispetto al testo originale.\n-Evita ridondanze e semplifica dove possibile, senza perdere contenuto informativo.\n-Non modificare sezioni non richieste.\n-Se un codice fornito non è presente nel testo, ignoralo e non fare modifiche.",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -1008,
+        1920
+      ],
+      "id": "3e52e38b-2a82-40aa-954b-45ea2459fff3",
+      "name": "Riscrittura Articolo"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        -1552,
+        1920
+      ],
+      "id": "53846280-1c8f-43c7-9933-b55182ccdd3e",
+      "name": "Aggregazione testo e risposta"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -1744,
+        1920
+      ],
+      "id": "d7b5d5a5-b36f-4cd9-88ba-707e1cc34f22",
+      "name": "Unione Testo-Risposta"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ddf8f3c6-5a10-4b80-8f80-ba01b6ba4aa7",
+              "name": "text",
+              "value": "={{ $('Salvataggio Bozze prima dell\\'invio').item.json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -192,
+        1264
+      ],
+      "id": "07d1eac2-0450-4480-80ab-2c4afc04aa69",
+      "name": "Ripresa testo bozze per i passaggi successivi"
+    },
+    {
+      "parameters": {
+        "content": "## Salvataggio e invio bozza newsletter\nI dati vengono salvati e successivamnete inviati in attesa della risposta",
+        "height": 320,
+        "width": 496
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1408,
+        1104
+      ],
+      "id": "3b82f21b-3ea4-41e2-92fb-fb7566098595",
+      "name": "Sticky Note11"
+    },
+    {
+      "parameters": {
+        "content": "## Riscrittura Articoli non corretti\nGli articoli non corretti vengono sistemati all'interno di un processo di riscrittura tramite ai poi reinviati alla zona di salvataggio ed invio",
+        "height": 688,
+        "width": 1360,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1824,
+        1584
+      ],
+      "id": "c42b3dc3-c3dc-4b3d-8050-34a5d9d13cf9",
+      "name": "Sticky Note12"
+    },
+    {
+      "parameters": {
+        "content": "## Attesa conferma Bozza\nuna volta ricevuto il messaggio con la bozza degli articoli da inserire chi controlla potrà confermare( scrivendo OK) oppure scrivere il codice che identifica l'articolo/i da modificare",
+        "height": 320,
+        "width": 624,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -896,
+        1104
+      ],
+      "id": "3e49ab3f-e0be-41df-8a47-91cc5020def1",
+      "name": "Sticky Note13"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "__CUSTOM_API_CALL__"
+      },
+      "type": "n8n-nodes-base.mautic",
+      "typeVersion": 1,
+      "position": [
+        -2160,
+        3104
+      ],
+      "id": "3ce8f3a2-dd03-4389-8eef-91e89d972068",
+      "name": "Mautic",
+      "alwaysOutputData": false,
+      "credentials": {
+        "mauticOAuth2Api": {
+          "id": "oVpS0PUoK3ilvnHZ",
+          "name": "Mautic account OAuth2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 7
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        -432,
+        1264
+      ],
+      "id": "448d2e2d-26b6-44e2-85e3-b5f96a94f9af",
+      "name": "Wait",
+      "webhookId": "ced96ec1-5f7f-404b-8a28-1256c4c14e07"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "5ad4c98f-0ef0-41a3-b447-97598677863a",
+              "leftValue": "={{ $json.data['Dai la conferma oppure inserisci il codice degli articoli da inserire( es: DW:)'] }}",
+              "rightValue": "OK",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -656,
+        1248
+      ],
+      "id": "a7a35402-9867-4b18-aa97-69fd3d2e4e8a",
+      "name": "Controllo Bozze"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "1b429ee8-3bf5-4a36-8f90-703b37be7948",
+              "name": "data['Dai la conferma oppure inserisci il codice degli articoli da inserire( es: DW:)']",
+              "value": "={{ $json.data['Dai la conferma oppure inserisci il codice degli articoli da inserire( es: DW:)'].toUpperCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -880,
+        1248
+      ],
+      "id": "36ba0265-609a-4df3-8995-72171f0a6959",
+      "name": "ToUpperCase"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.data[1].data['Dai la conferma oppure inserisci il codice degli articoli da inserire( es: DW:)'] }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "11f6ee9e-4dde-4052-b36a-9bd6613f59f1"
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.2,
+      "position": [
+        -1312,
+        1920
+      ],
+      "id": "26cee60e-d235-44a1-9a4d-6284d645b748",
+      "name": "Blocco Ripetizioni"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c72fe97a-5295-4646-b214-3b22e8290038",
+              "name": "html",
+              "value": "={{ $('Code Sistemazione Finale').item.json.html }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1552,
+        912
+      ],
+      "id": "2ab20c8e-0af2-4133-90e9-f8ade7145249",
+      "name": "Salvataggio Newsletter"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8417db1d-d17e-49c0-8ec8-77795c7ef6b5",
+              "name": "text",
+              "value": "=Tag dei vari articoli della newsletter:\n\nIbasic:{{ $('Aggregate').item.json.data[0].tag_ib }}\nDigitalWay:{{ $('Aggregate').item.json.data[1].tag_dw }}\nEpiclick:{{ $('Aggregate').item.json.data[2].tag_ep }}\nImpiantiDomotica:{{ $('Aggregate').item.json.data[3].tag_im }}\nSicurezza:{{ $('Aggregate').item.json.data[4].tag_si }}\nExcetera:{{ $('Aggregate').item.json.data[5].tag_ex }}\nCoraHospitality:{{ $('Aggregate').item.json.data[6].tag_co }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1552,
+        1344
+      ],
+      "id": "4350839d-da23-4d19-af76-1e44406c681e",
+      "name": "Ripresa Tag Articoli"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ottieni il testo da una proprietà del nodo precedente\nconst inputText = $input.first().json.text|| '';\n\n// Dividi il testo in righe\nconst lines = inputText.split('\\n');\n\n// Filtra le righe dove c'è un tag non vuoto dopo i due punti\nconst filteredLines = lines.filter(line => {\n  const parts = line.split(':');\n  return parts.length === 2 && parts[1].trim() !== '';\n});\n\n// Ricostruisci il testo filtrato\nconst outputText = filteredLines.join('\\n');\n\n// Restituisci il risultato per il nodo successivo\nreturn {\n  json: {\n    cleanedTags: outputText\n  }\n};\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        1344
+      ],
+      "id": "bcb09953-6f36-47e4-a09d-245586300610",
+      "name": "Rimozione Tag Inesistenti"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2080,
+        1008
+      ],
+      "id": "aba131a5-0ed9-496a-a050-fcdee45fcb9a",
+      "name": "Unione"
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {
+          "includeBinaries": true
+        }
+      },
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        2288,
+        1008
+      ],
+      "id": "79553518-7c17-40cd-ac3b-03ab231ce2b0",
+      "name": "Aggregazione Finale"
+    },
+    {
+      "parameters": {
+        "content": "## Ripresa tag degli articoli per l'invio finale\n",
+        "height": 256,
+        "width": 448,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1488,
+        1248
+      ],
+      "id": "c2b1554b-ecb5-4336-8855-e16a4adf88aa",
+      "name": "Sticky Note14"
+    },
+    {
+      "parameters": {
+        "content": "## Unione tra documento e tag articoli per inviarli tramite mail",
+        "height": 288,
+        "width": 368
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2048,
+        896
+      ],
+      "id": "e86d4848-c69d-4ccb-a895-84931d3b0fca",
+      "name": "Sticky Note15"
+    },
+    {
+      "parameters": {
+        "toRecipients": "project@ibasic.it",
+        "subject": "File Newsletter {{ DateTime.fromISO($('Today date').item.json.Today).toFormat('dd LLLL yyyy') }}",
+        "bodyContent": "=ecco il file di ciò che hai approvato!\n\nI tag degli articoli presenti sono: \n{{ $json.data[1].cleanedTags }}",
+        "additionalFields": {
+          "attachments": {
+            "attachments": [
+              {
+                "binaryPropertyName": "data"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        2528,
+        1008
+      ],
+      "id": "e510ea54-f070-4d37-946b-54d7b1ede1c6",
+      "name": "Send a message",
+      "webhookId": "aaeb98a5-1284-4e4d-b041-3af9fe234ac6",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "VE6M1U4ZTXiylIsV",
+          "name": "Microsoft Outlook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chatMessage",
+        "operation": "sendAndWait",
+        "chatId": {
+          "__rl": true,
+          "value": "19:0bbc7cc7-c6d6-4b72-88f2-09da07c7d91a_6c4f8f26-9471-4adf-85e0-28f4666fd879@unq.gbl.spaces",
+          "mode": "list",
+          "cachedResultName": "Project, Stage Zucchi39 (oneOnOne)",
+          "cachedResultUrl": "https://teams.microsoft.com/l/chat/19%3A0bbc7cc7-c6d6-4b72-88f2-09da07c7d91a_6c4f8f26-9471-4adf-85e0-28f4666fd879%40unq.gbl.spaces/0?tenantId=c2b6214b-b4a2-4c6f-9f5f-ffe6a621c2c9"
+        },
+        "message": "=Controlla gli articoli per la Newsletter  del {{ DateTime.fromISO($('Today date').item.json.Today).toFormat('dd LLLL yyyy') }}\n\n{{ $json.text }}",
+        "responseType": "customForm",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Dai la conferma oppure inserisci il codice degli articoli da inserire( es: DW:)",
+              "placeholder": "ok(conferma), IB-DW-EP-IMPIANTI-SICUREZZA-EX-CORA(sistemazione articoli)",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "responseFormCustomCss": ":root {\n  --font-family: 'Open Sans', sans-serif;\n  --font-size-html-h1: 20px;\n  --font-size-html-h2: 16px;\n  --font-size-paragraph: 14px;\n  --font-size-input: 12px;\n  --color-text: #333;\n  --color-background: #fbfcfe;\n  --color-header: #525356;\n  --color-submit-btn-bg: #ff6d5a;\n  --color-submit-btn-text: #fff;\n  --color-card-border: #dbdfe7;\n  --color-card-shadow: rgba(99, 77, 255, 0.06);\n  --color-highlight: #cce5ff;\n  --color-link: #0077cc;\n  --color-link-hover: #005fa3;\n}\n\nbody {\n  font-family: var(--font-family);\n  background-color: var(--color-background);\n  color: var(--color-text);\n  margin: 0;\n  padding: 20px;\n  line-height: 1.6;\n}\n\nh1 {\n  font-size: var(--font-size-html-h1);\n  color: var(--color-header);\n  margin-bottom: 20px;\n  border-bottom: 2px solid var(--color-card-border);\n  padding-bottom: 10px;\n}\n\nh2 {\n  font-size: var(--font-size-html-h2);\n  margin: 10px 0;\n  color: var(--color-header);\n  cursor: pointer;\n  padding: 8px;\n  background-color: #f0f4ff;\n  border-left: 4px solid var(--color-highlight);\n  transition: background-color 0.3s ease;\n}\n\nh2:hover {\n  background-color: var(--color-highlight);\n}\n\np {\n  font-size: var(--font-size-paragraph);\n  margin: 8px 0;\n}\n\na {\n  color: var(--color-link);\n  text-decoration: underline;\n  font-weight: bold;\n}\n\na:hover {\n  color: var(--color-link-hover);\n}\n\n.input-box {\n  margin: 25px 0;\n  padding: 15px;\n  background: #ffffff;\n  border: 1px solid var(--color-card-border);\n  border-radius: 8px;\n  box-shadow: 0 2px 6px var(--color-card-shadow);\n}\n\nbutton {\n  background-color: var(--color-submit-btn-bg);\n  color: var(--color-submit-btn-text);\n  padding: 10px 20px;\n  font-size: var(--font-size-input);\n  border-radius: 4px;\n  border: none;\n  cursor: pointer;\n  width: auto;\n  transition: background-color 0.3s ease;\n}\n\nbutton:hover {\n  background-color: #34495e;\n}\n\n#newsContainer {\n  margin-bottom: 40px;\n}\n\n.selected {\n  background-color: var(--color-highlight) !important;\n  border-left: 4px solid #3399ff;\n}"
+        }
+      },
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [
+        -1120,
+        1248
+      ],
+      "id": "f5e96e36-9c26-41ed-bdca-07de52886426",
+      "name": "Visualizzazione Articoli Selezionati",
+      "webhookId": "d37b6b1e-9a1e-4f68-9439-e167b81ca4b9",
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "guwtA8f2c62ADqhg",
+          "name": "Microsoft Teams account stage@zucchi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chatMessage",
+        "chatId": {
+          "__rl": true,
+          "value": "19:0bbc7cc7-c6d6-4b72-88f2-09da07c7d91a_6c4f8f26-9471-4adf-85e0-28f4666fd879@unq.gbl.spaces",
+          "mode": "list",
+          "cachedResultName": "Project, Stage Zucchi39 (oneOnOne)",
+          "cachedResultUrl": "https://teams.microsoft.com/l/chat/19%3A0bbc7cc7-c6d6-4b72-88f2-09da07c7d91a_6c4f8f26-9471-4adf-85e0-28f4666fd879%40unq.gbl.spaces/0?tenantId=c2b6214b-b4a2-4c6f-9f5f-ffe6a621c2c9"
+        },
+        "message": "Mail con il file inviata",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [
+        2736,
+        1008
+      ],
+      "id": "02fc05a2-e3a4-4f88-80a2-52fc7a05a198",
+      "name": "Create chat message",
+      "webhookId": "d0effa60-6df0-40ed-8d1f-9ebdc9645111",
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "guwtA8f2c62ADqhg",
+          "name": "Microsoft Teams account stage@zucchi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "toRecipients": "project@ibasic.it",
+        "subject": "Newsletter {{ DateTime.fromISO($('Today date').item.json.Today).toFormat('dd LLLL yyyy') }}",
+        "message": "={{ $json.html }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double"
+          }
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftOutlook",
+      "typeVersion": 2,
+      "position": [
+        832,
+        1264
+      ],
+      "id": "72cc41aa-c205-4848-96b2-fb38c9309d9c",
+      "name": "Verifica Visualizzaione Finale",
+      "webhookId": "aaeb98a5-1284-4e4d-b041-3af9fe234ac6",
+      "credentials": {
+        "microsoftOutlookOAuth2Api": {
+          "id": "VE6M1U4ZTXiylIsV",
+          "name": "Microsoft Outlook account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "chatMessage",
+        "chatId": {
+          "__rl": true,
+          "value": "19:0bbc7cc7-c6d6-4b72-88f2-09da07c7d91a_6c4f8f26-9471-4adf-85e0-28f4666fd879@unq.gbl.spaces",
+          "mode": "list",
+          "cachedResultName": "Project, Stage Zucchi39 (oneOnOne)",
+          "cachedResultUrl": "https://teams.microsoft.com/l/chat/19%3A0bbc7cc7-c6d6-4b72-88f2-09da07c7d91a_6c4f8f26-9471-4adf-85e0-28f4666fd879%40unq.gbl.spaces/0?tenantId=c2b6214b-b4a2-4c6f-9f5f-ffe6a621c2c9"
+        },
+        "message": "Visualizzazione Newsletter inviata",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.microsoftTeams",
+      "typeVersion": 2,
+      "position": [
+        816,
+        1056
+      ],
+      "id": "82867fd3-c3e8-476c-86ad-c4b866cf9726",
+      "name": "Segnalazione Mail Verifica",
+      "webhookId": "90e7c8ea-75ff-4211-9f0f-4b48912258f2",
+      "credentials": {
+        "microsoftTeamsOAuth2Api": {
+          "id": "guwtA8f2c62ADqhg",
+          "name": "Microsoft Teams account stage@zucchi"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "html",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        544,
+        1264
+      ],
+      "id": "7235ab73-b575-42cc-98fa-67db343f474c",
+      "name": "Split Out"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Decompose Sample": {
+      "main": [
+        [
+          {
+            "node": "Mautic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Ibasic",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "DigitalWay",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Epiclink",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model3": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "ImpiantiDomotica",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model4": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Sicurezza",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model5": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Excetera",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model6": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "CoraHospitality",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sicurezza": {
+      "main": [
+        [
+          {
+            "node": "Code Sicurezza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Excetera": {
+      "main": [
+        [
+          {
+            "node": "Code Excetera",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Epiclink": {
+      "main": [
+        [
+          {
+            "node": "Code Epic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "DigitalWay": {
+      "main": [
+        [
+          {
+            "node": "Code Digital",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ibasic": {
+      "main": [
+        [
+          {
+            "node": "Code Ibasic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ImpiantiDomotica": {
+      "main": [
+        [
+          {
+            "node": "Code Impianti",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CoraHospitality": {
+      "main": [
+        [
+          {
+            "node": "Code Cora",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a post Cora": {
+      "main": [
+        [
+          {
+            "node": "CoraHospitality",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a post Impianti": {
+      "main": [
+        [
+          {
+            "node": "ImpiantiDomotica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a post Epic": {
+      "main": [
+        [
+          {
+            "node": "Epiclink",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a post Digital": {
+      "main": [
+        [
+          {
+            "node": "DigitalWay",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a post Sicurezza": {
+      "main": [
+        [
+          {
+            "node": "Sicurezza",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a post Excetera": {
+      "main": [
+        [
+          {
+            "node": "Excetera",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a post Ibasic": {
+      "main": [
+        [
+          {
+            "node": "Ibasic",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Digital": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "List of briefes": {
+      "main": [
+        []
+      ]
+    },
+    "Code Epic": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "List of briefes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model7": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Creazione Newsletter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Today date": {
+      "main": [
+        [
+          {
+            "node": "Get a post Ibasic",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a post Digital",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a post Epic",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a post Impianti",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a post Sicurezza",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a post Excetera",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get a post Cora",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Ibasic": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Impianti": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Code Sicurezza": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Code Excetera": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    },
+    "Code Cora": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 6
+          }
+        ]
+      ]
+    },
+    "Creazione file NewsLetter": {
+      "main": [
+        [
+          {
+            "node": "Unione",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Creazione Newsletter": {
+      "main": [
+        [
+          {
+            "node": "Code Sistemazione Finale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code Sistemazione Finale": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model8": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Riscrittura Articolo",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "Riscrittura Articolo",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Controllo Lavoro Finale": {
+      "main": [
+        [
+          {
+            "node": "Salvataggio Newsletter",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ripresa Tag Articoli",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ripresa testo bozze per i passaggi successivi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvataggio Bozze prima dell'invio": {
+      "main": [
+        [
+          {
+            "node": "Unione Testo-Risposta",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Visualizzazione Articoli Selezionati",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversione testo Ai": {
+      "main": [
+        [
+          {
+            "node": "Salvataggio Bozze prima dell'invio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Riscrittura Articolo": {
+      "main": [
+        [
+          {
+            "node": "Conversione testo Ai",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregazione testo e risposta": {
+      "main": [
+        [
+          {
+            "node": "Blocco Ripetizioni",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unione Testo-Risposta": {
+      "main": [
+        [
+          {
+            "node": "Aggregazione testo e risposta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ripresa testo bozze per i passaggi successivi": {
+      "main": [
+        [
+          {
+            "node": "Creazione Newsletter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Ripresa testo bozze per i passaggi successivi",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Today date",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Controllo Bozze": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unione Testo-Risposta",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "ToUpperCase": {
+      "main": [
+        [
+          {
+            "node": "Controllo Bozze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Blocco Ripetizioni": {
+      "main": [
+        [
+          {
+            "node": "Riscrittura Articolo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Salvataggio Newsletter": {
+      "main": [
+        [
+          {
+            "node": "Creazione file NewsLetter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ripresa Tag Articoli": {
+      "main": [
+        [
+          {
+            "node": "Rimozione Tag Inesistenti",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rimozione Tag Inesistenti": {
+      "main": [
+        [
+          {
+            "node": "Unione",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Unione": {
+      "main": [
+        [
+          {
+            "node": "Aggregazione Finale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregazione Finale": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Visualizzazione Articoli Selezionati": {
+      "main": [
+        [
+          {
+            "node": "ToUpperCase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Create chat message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create chat message": {
+      "main": [
+        []
+      ]
+    },
+    "Verifica Visualizzaione Finale": {
+      "main": [
+        [
+          {
+            "node": "Controllo Lavoro Finale",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Segnalazione Mail Verifica": {
+      "main": [
+        []
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Verifica Visualizzaione Finale",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Segnalazione Mail Verifica",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "49f2f960-b586-4617-a8d1-2eb23b6242e5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b86d6749ab4e15425da04d4f1540ed99e348658774cbb9364bbed73764684b0d"
+  },
+  "id": "eDOZmbbaH7Mn8HvB",
+  "tags": []
+}
